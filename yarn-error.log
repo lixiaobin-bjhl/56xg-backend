@@ -1,0 +1,84 @@
+Arguments: 
+  /Users/lixiaobin/.nvm/versions/node/v8.12.0/bin/node /usr/local/bin/yarn install
+
+PATH: 
+  /Users/lixiaobin/.deno/bin:/Users/lixiaobin/.nvm/versions/node/v8.11.3/bin/:/Users/lixiaobin/.nvm/versions/node/v8.11.3/bin/:/Users/lixiaobin/.nvm/versions/node/v8.12.0/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/git/bin:/Users/lixiaobin/.rvm/bin
+
+Yarn version: 
+  0.27.5
+
+Node version: 
+  8.12.0
+
+Platform: 
+  darwin x64
+
+npm manifest: 
+  {
+    "name": "56xg-backend",
+    "version": "1.0.0",
+    "description": "56xg-backend",
+    "private": true,
+    "egg": {
+      "typescript": true,
+      "declarations": true
+    },
+    "scripts": {
+      "start": "egg-scripts start --daemon --title=egg-server-56xg-backend",
+      "stop": "egg-scripts stop --title=egg-server-56xg-backend",
+      "dev": "egg-bin dev",
+      "debug": "egg-bin debug",
+      "test-local": "egg-bin test",
+      "test": "npm run lint -- --fix && npm run test-local",
+      "cov": "egg-bin cov",
+      "tsc": "ets && tsc -p tsconfig.json",
+      "ci": "npm run lint && npm run cov && npm run tsc",
+      "autod": "autod",
+      "lint": "tslint --project . -c tslint.json",
+      "clean": "ets clean"
+    },
+    "dependencies": {
+      "egg": "^2.6.1",
+      "egg-scripts": "^2.6.0"
+    },
+    "devDependencies": {
+      "@types/mocha": "^2.2.40",
+      "@types/node": "^7.0.12",
+      "@types/supertest": "^2.0.0",
+      "autod": "^3.0.1",
+      "autod-egg": "^1.1.0",
+      "egg-ci": "^1.8.0",
+      "egg-bin": "^4.11.0",
+      "egg-mock": "^3.16.0",
+      "tslib": "^1.9.0",
+      "tslint": "^5.0.0",
+      "tslint-config-egg": "^1.0.0",
+      "typescript": "^3.0.0"
+    },
+    "engines": {
+      "node": ">=8.9.0"
+    },
+    "ci": {
+      "version": "8"
+    },
+    "repository": {
+      "type": "git",
+      "url": ""
+    },
+    "eslintIgnore": ["coverage"],
+    "author": "lixiaobin@gmail.com",
+    "license": "MIT"
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile
+
+Trace: 
+  Error: http://registry.npmjs.org/egg: ETIMEDOUT
+      at Timeout._onTimeout (/usr/local/Cellar/yarn/0.27.5/libexec/lib/yarn-cli.js:114906:19)
+      at ontimeout (timers.js:498:11)
+      at tryOnTimeout (timers.js:323:5)
+      at Timer.listOnTimeout (timers.js:290:5)
