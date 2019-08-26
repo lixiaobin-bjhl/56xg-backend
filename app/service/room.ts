@@ -8,9 +8,18 @@ export default class Room extends Service {
         let { ctx } = this
         let rooms = await ctx.app.redis.get('rooms')
         if (rooms) {
-            rooms = JSON.stringify(rooms)
+            rooms = JSON.parse(rooms)
         }
         return rooms
+    }
+
+    /**
+     * 创建房间
+     */
+    async add() {
+        let query = this.ctx.request.body
+        let roomInfo = await this.createRoom(query.name)
+        return roomInfo
     }
     /**
      * 创建一个6位房间号
@@ -44,16 +53,19 @@ export default class Room extends Service {
     /**
      * 创建房间
      *
-     * @param {string|number} userId 用户id
+     * @param {string} name 房间名称
      */
-    async createRoom(userId: string|number) {
+    async createRoom(name: string) {
         let roomId = this.generateRoomId()
+        let userId = await this.ctx.app.sessionStore.get('user')
         interface RoomInfo {
             id: number;
+            name: string;
             seats: Array<object>;
         }
         let roomInfo: RoomInfo = {
             id: roomId,
+            name,
             seats: []
         }
         interface Seat {
@@ -74,7 +86,7 @@ export default class Room extends Service {
         rooms = JSON.parse(rooms)
         rooms[roomId] = roomInfo
         await this.ctx.app.redis.set('rooms', JSON.stringify(rooms))
-        console.log('roomInfo', roomInfo)
+        return roomInfo
     }
     /**
      * 加入房间

@@ -5,4 +5,9 @@ export default class RoomController extends Controller {
         const { ctx } = this
         ctx.body = this.ctx.helper.success(await ctx.service.room.list())
     }
+
+    public async add() {
+        const { ctx } = this
+        ctx.body = this.ctx.helper.success(await ctx.service.room.add())
+    }
 }

@@ -6,6 +6,7 @@ export default (app: Application) => {
 
     router.get('/', controller.home.index)
     router.post('/room/list.json', controller.room.list)
+    router.post('/room/add.json', controller.room.add)
 
     app.io.of('/').route('login', controller.login.index)
     let nsp = app.io.of('/')
