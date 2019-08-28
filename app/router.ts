@@ -5,14 +5,22 @@ export default (app: Application) => {
     const { controller, router } = app
 
     router.get('/', controller.home.index)
-    router.post('/room/list.json', controller.room.list)
-    router.post('/room/add.json', controller.room.add)
 
-    app.io.of('/').route('login', controller.login.index)
+    router.post('/room/list.json', controller.room.list)
+    router.post('/room/add.json', app.middleware.auth(), controller.room.add)
+    router.post('/room/join.json', app.middleware.auth(), controller.room.join)
+
+    router.get('/mj/shuffle.json', controller.mj.shuffle)
+
+    router.post('/login.json', controller.home.login)
+    router.post('/info.json', controller.home.info)
+
+    // app.io.of('/').route('login', controller.login.index)
     let nsp = app.io.of('/')
-    nsp.on('connection', async (socket) => {
-        const query = socket.handshake.query
-        console.log(query.name + ' connection')
+
+    nsp.on('connection', async () => {
+        // console.log(socket)
+        console.log('connection')
     })
     nsp.on('disconnecting', () => {
         console.log('disconnecting')

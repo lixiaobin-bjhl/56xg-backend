@@ -15,15 +15,17 @@ export default (appInfo: EggAppInfo) => {
             host: '118.190.206.102',   // Redis host
             password: 'lixiaobin',
             db: 0
-        },
-        agent: true
+        }
     }
     config.cors = {
-        origin: '*',
+        origin() {
+            return 'http://localhost:7456'
+        },
+        credentials: true,
         allowMethods: 'GET,HEAD,PUT,POST,DELETE,PATCH'
     }
     config.security = {
-        domainWhiteList: ['http://127.0.0.1:7001'],
+        domainWhiteList: ['http://localhost:7456'],
         csrf: {
             ignore: '/'
         }

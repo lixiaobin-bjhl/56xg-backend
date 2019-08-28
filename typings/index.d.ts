@@ -1,4 +1,4 @@
-import 'egg';
+import 'egg'
 
 declare module 'egg' {
     interface EggRedisOptions {

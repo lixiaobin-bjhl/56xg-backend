@@ -18,11 +18,6 @@ const plugin: EggPlugin = {
         enable: true,
         package: 'egg-session-redis'
     }
-    // static: true,
-    // nunjucks: {
-    //   enable: true,
-    //   package: 'egg-view-nunjucks',
-    // }
 }
 
 export default plugin

@@ -57,7 +57,7 @@ export default class Room extends Service {
      */
     async createRoom(name: string) {
         let roomId = this.generateRoomId()
-        let userId = await this.ctx.app.sessionStore.get('user')
+        let userId = await this.ctx.session.user
         interface RoomInfo {
             id: number;
             name: string;
@@ -91,12 +91,13 @@ export default class Room extends Service {
     /**
      * 加入房间
      *
-     * @param {number|string} userId 用户id
      * @param {number} roomId 房间id
      */
-    async joinRoom(userId, roomId) {
+    async join() {
         let { ctx } = this
+        let roomId = ctx.request.body.roomId
         let rooms = await ctx.app.redis.get('rooms')
+        let user = ctx.session.user
         rooms = JSON.parse(rooms)
         let room =  rooms[roomId]
         if (room) {
@@ -104,7 +105,7 @@ export default class Room extends Service {
             // 占房间中剩余的第一个空位
             if (!seats.some((item): boolean => {
                 if (!item.userId) {
-                    item.userId = userId
+                    item.userId = user
                     return true
                 }
                 return false
@@ -113,7 +114,7 @@ export default class Room extends Service {
             }
         } else {
             this.app.logger.error('房间不存在', JSON.stringify({
-                userId,
+                user,
                 roomId
             }))
         }

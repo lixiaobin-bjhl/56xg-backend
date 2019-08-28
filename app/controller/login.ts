@@ -1,10 +1,10 @@
 import { Controller } from 'egg'
 
 export default class LoginController extends Controller {
-    public async index(socket) {
-        let { ctx } = this
-        let arg = socket.args[0]
-        ctx.app.sessionStore.set('user', arg.name)
+    public async index() {
+        // let { ctx } = this
+        // let arg = socket.args[0]
+        // ctx.app.sessionStore.set('user', arg.name)
         // ctx.app.redis['session']['user'] = arg
         // let room = await ctx.service.room.getRoomByUserId(arg.name)
         // if (room) {
