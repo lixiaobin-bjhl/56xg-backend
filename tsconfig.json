@@ -26,7 +26,6 @@
     "app/public",
     "app*",
     "app/views",
-    "typings/*",
     "node_modules*"
   ]
 }

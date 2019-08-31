@@ -1,6 +1,7 @@
 import { Service } from 'egg'
+import Room from '../classes/Room'
 
-export default class Room extends Service {
+export default class RoomService extends Service {
     /**
      * 获取房间列表
      */
@@ -11,6 +12,21 @@ export default class Room extends Service {
             rooms = JSON.parse(rooms)
         }
         return rooms
+    }
+
+    /**
+     * 根据房间id查找room对象
+     *
+     * @param {number} roomId  房间id
+     */
+    async getRoomByRoomId(roomId) {
+        let { ctx } = this
+        let rooms = await ctx.app.redis.get('rooms')
+        if (rooms) {
+            rooms = JSON.parse(rooms)
+            return rooms[roomId]
+        }
+        return null
     }
 
     /**
@@ -56,22 +72,24 @@ export default class Room extends Service {
      * @param {string} name 房间名称
      */
     async createRoom(name: string) {
+        let { ctx } = this
+        let rooms = await ctx.helper.getRooms()
         let roomId = this.generateRoomId()
-        let userId = await this.ctx.session.user
-        interface RoomInfo {
-            id: number;
-            name: string;
-            seats: Array<object>;
+        // 房间重了, 重新新建
+        if (rooms[roomId]) {
+            this.createRoom(name)
+            return
         }
-        let roomInfo: RoomInfo = {
+        let user = await ctx.helper.getUser()
+        let userId = user.id
+        let room = new Room({
             id: roomId,
-            name,
+            name: name,
+            createTime: new Date().getTime(),
+            userId: userId,
             seats: []
-        }
-        interface Seat {
-            userId: string | number;
-        }
-        for (let i = 0; i < 4; ++i) {
+        })
+        for (let i = 0; i < 3; ++i) {
             let uId: string|number = ''
             // 创建者占第一个坐
             if (!i) {
@@ -80,13 +98,15 @@ export default class Room extends Service {
             let seat: Seat = {
                 userId: uId
             }
-            roomInfo.seats.push(seat)
+            room.addSeat(seat)
         }
-        let rooms = await this.ctx.app.redis.get('rooms') || '{}'
-        rooms = JSON.parse(rooms)
-        rooms[roomId] = roomInfo
+        rooms[roomId] = room
+        await this.updateRooms(rooms)
+        return room
+    }
+
+    async updateRooms(rooms) {
         await this.ctx.app.redis.set('rooms', JSON.stringify(rooms))
-        return roomInfo
     }
     /**
      * 加入房间
@@ -96,27 +116,60 @@ export default class Room extends Service {
     async join() {
         let { ctx } = this
         let roomId = ctx.request.body.roomId
-        let rooms = await ctx.app.redis.get('rooms')
-        let user = ctx.session.user
-        rooms = JSON.parse(rooms)
+        let rooms = await ctx.helper.getRooms()
+        let user = await ctx.helper.getUser()
         let room =  rooms[roomId]
         if (room) {
             let seats = room.seats
+            // 看是否已经房间中
+            if (seats.some((item): boolean => {
+                if (item.userId === user.id) {
+                    return true
+                }
+                return false
+            })) {
+                user.roomId = roomId
+                ctx.session.user = JSON.stringify(user)
+                return {
+                    count: seats.filter((item) => {
+                        return item.userId
+                    }).length,
+                    roomId: roomId
+                }
+            }
             // 占房间中剩余的第一个空位
             if (!seats.some((item): boolean => {
                 if (!item.userId) {
-                    item.userId = user
+                    item.userId = user.id
                     return true
                 }
                 return false
             })) {
                 return '房间已满'
+            } else {
+                let r: Room = new Room({
+                    id: roomId,
+                    name: room.name,
+                    seats: room.seats
+                })
+                r.addSeat({
+                    userId: user.id
+                })
+                rooms[roomId] = r
+                user.roomId = roomId
+                ctx.session.user = JSON.stringify(user)
+                await this.updateRooms(rooms)
+                return {
+                    count: r.getSeatCount(),
+                    roomId: roomId
+                }
             }
         } else {
             this.app.logger.error('房间不存在', JSON.stringify({
                 user,
                 roomId
             }))
+            return '房间不存在'
         }
     }
 }

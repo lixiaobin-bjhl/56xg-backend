@@ -47,6 +47,17 @@ module.exports = {
         let randomNumber = Math.floor(Math.random() * 100) < 27 ? Math.floor(Math.random() * 100) : Math.floor(Math.random() * 100) % 27
         return arr[randomNumber]
     },
+    async getUser() {
+        return JSON.parse(await this.ctx.session.user)
+    },
+    async getRooms() {
+        let result = {}
+        let rooms = await this.ctx.app.redis.get('rooms')
+        if (rooms) {
+            return JSON.parse(rooms)
+        }
+        return result
+    },
     /**
      * 生成微信用到的noncestr
      */

@@ -11,6 +11,9 @@ export default (app: Application) => {
     router.post('/room/join.json', app.middleware.auth(), controller.room.join)
 
     router.get('/mj/shuffle.json', controller.mj.shuffle)
+    router.post('/mj/deal.json', controller.mj.deal)
+
+    router.post('/game/start.json', app.middleware.auth(), controller.game.start)
 
     router.post('/login.json', controller.home.login)
     router.post('/info.json', controller.home.info)
