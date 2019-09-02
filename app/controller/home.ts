@@ -14,7 +14,7 @@ export default class HomeController extends Controller {
             name: user
         }
         ctx.session['user'] = JSON.stringify(u)
-        ctx.body = await ctx.helper.success(u)
+        ctx.body = ctx.helper.success(u)
     }
 
     public async info() {

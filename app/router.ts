@@ -14,6 +14,7 @@ export default (app: Application) => {
     router.post('/mj/deal.json', controller.mj.deal)
 
     router.post('/game/start.json', app.middleware.auth(), controller.game.start)
+    router.post('/game/deal.json', app.middleware.auth(), controller.game.deal)
 
     router.post('/login.json', controller.home.login)
     router.post('/info.json', controller.home.info)

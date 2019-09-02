@@ -58,6 +58,14 @@ module.exports = {
         }
         return result
     },
+    async getGames() {
+        let result = {}
+        let games = await this.ctx.app.redis.get('games')
+        if (games) {
+            return JSON.parse(games)
+        }
+        return result
+    },
     /**
      * 生成微信用到的noncestr
      */
