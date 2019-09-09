@@ -72,6 +72,17 @@ module.exports = {
     generateNoncestr(): string {
         return Math.random().toString(36).substr(2, 15)
     },
+    /**
+     * 获取socket列表
+     */
+    async getSocketList() {
+        let sockets = await this.app.redis.get('cache:sockets')
+        let list = {}
+        if (sockets) {
+            list = JSON.parse(sockets)
+        }
+        return list
+    },
     success(data, pageDto) {
         let result = {
             code: 0,

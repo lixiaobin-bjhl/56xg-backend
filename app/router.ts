@@ -19,12 +19,34 @@ export default (app: Application) => {
     router.post('/login.json', controller.home.login)
     router.post('/info.json', controller.home.info)
 
-    // app.io.of('/').route('login', controller.login.index)
+    app.io.of('/').route('join-room', controller.room.join)
+    app.io.of('/').route('chupai', controller.game.chupai)
+    app.io.of('/').route('heartbeat', controller.message.ping)
+
     let nsp = app.io.of('/')
 
-    nsp.on('connection', async () => {
-        // console.log(socket)
-        console.log('connection')
+    nsp.on('connection', async (socket) => {
+        let sockets = await app.redis.get('cache:sockets')
+        let list = {}
+        let sid = socket.id
+        const query = socket.handshake.query
+        let uid = query.uid
+        console.log('uid', uid)
+        if (sockets) {
+            list = JSON.parse(sockets)
+        }
+        list[uid] = {
+            uid,
+            sid,
+            online: 1,
+            lastTimestamp: Number(new Date())
+        }
+        await app.redis.set('cache:sockets', JSON.stringify(list))
+        await socket.broadcast.emit('message', {
+            type: 'online',
+            uid,
+            sid
+        })
     })
     nsp.on('disconnecting', () => {
         console.log('disconnecting')

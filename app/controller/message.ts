@@ -1,16 +1,20 @@
+
 const Controller = require('egg').Controller
-class DefaultController extends Controller {
+
+class MessageController extends Controller {
     /**
      * 客户端心跳处理
      */
     async ping(socket) {
-        let list = await this.ctx.helper.getSocketList()
-        const query = socket.handshake.query
-        list[query.uid].lastTimestamp = Number(new Date())
-        list[query.uid].online = 1
-        list[query.uid].sid = socket.id
-        await this.app.redis.set('ht:xq:cache:sockets', JSON.stringify(list))
+        let { ctx } = this
+        let list = await ctx.helper.getSocketList()
+        let user = await ctx.helper.getUser()
+        let userId = user.id
+        list[userId].lastTimestamp = Number(new Date())
+        list[userId].online = 1
+        list[userId].sid = socket.id
+        await this.app.redis.set('cache:sockets', JSON.stringify(list))
     }
 }
 
-export default DefaultController
+export default MessageController

@@ -16,7 +16,7 @@ export default class GameService extends Service {
         let user = await ctx.helper.getUser()
         let room: Room = await ctx.service.room.getRoomByRoomId(user.roomId)
         let games = await ctx.helper.getGames()
-       
+
         let game = new Game({
             number: new Hashids(new Date().toString(), 10).encode(1),
             room
@@ -50,7 +50,7 @@ export default class GameService extends Service {
         let user = await ctx.helper.getUser()
         let g = await this.getGameByGameNumber(user.gameNumber)
         if (g) {
-            let game:Game = new Game(g)
+            let game: Game = new Game(g)
             game.deal()
             games[game.number] = game
             await this.updateGames(games)

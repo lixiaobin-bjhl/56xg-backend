@@ -1,6 +1,7 @@
 import { Controller } from 'egg'
 
 export default class RoomController extends Controller {
+
     public async list() {
         const { ctx } = this
         ctx.body = ctx.helper.success(await ctx.service.room.list())

@@ -12,19 +12,25 @@ export default class Game {
     mahjongs: Array<number> = []
     room: Object = {}
     gameUsers: Object = {}
-    turn: string|number
-
+    turn = -1
+    chupaiCount = 0
+    // 当前出的牌
+    chupai = -1
+    // 操作记录
+    actionList: Array<any> []
     constructor(options) {
         this.number = options.number
         this.room = options.room
         this.roomId = options.room.id
         let gameUsers = {}
         options.room.seats.forEach((item: any) => {
-            gameUsers[item.userId] = new GameUser(item.userId)
+            gameUsers[item.userId] = new GameUser(item)
         })
         this.gameUsers = gameUsers
         this.mahjongs = options.mahjongs || this.shuffle()
         this.createTime = options.createTime || new Date().getTime()
+        this.chupaiCount = options.chupaiCount
+        this.actionList = options.actionList
     }
 
     /**
@@ -68,6 +74,86 @@ export default class Game {
     }
 
     /**
+     * 检测是否有人胡牌
+     *
+     * @param {number} seatIndex 坐位号
+     * @param {number} pai 别人出的牌
+     */
+    checkUserCanHu(seatIndex, pai) {
+        let gameUser = this.getUserBySeatIndex(seatIndex)
+        gameUser.canHu = false
+        for (let k in gameUser.tingMap) {
+            if (pai == k) {
+                gameUser.canHu = true
+            }
+        }
+    }
+
+    /**
+     * 检测是否有人胡牌
+     *
+     * @param {number} seatIndex 坐位号
+     * @param {number} pai 别人出的牌
+     */
+    checkUserCanPeng(seatIndex, pai) {
+        let gameUser = this.getUserBySeatIndex(seatIndex)
+        let count = gameUser.countMap[pai]
+        if (count && count >= 2) {
+            gameUser.canPeng = true
+        }
+    }
+
+    /**
+     * 检测是否可以顶杠
+     *
+     * @param {number} seatIndex 坐位号
+     * @param {number} pai 别人出的牌
+     */
+    checkUserCanDianGang(seatIndex, pai) {
+        // 如果没有牌了，则不能再杠
+        if (this.mahjongs.length <= this.currentIndex) {
+            return
+        }
+        let gameUser = this.getUserBySeatIndex(seatIndex)
+        let count = gameUser.countMap[pai]
+        if (count != null && count >= 3) {
+            gameUser.canGang = true
+            gameUser.gangPai.push(pai)
+            return
+        }
+    }
+
+    /**
+     * 通过玩家坐位号获取用户对象
+     *
+     * @param {number} seatIndex 坐位号
+     */
+    getUserBySeatIndex(seatIndex) {
+        let users = Object.keys(this.gameUsers)
+        for (let i = 0; i < 40; ++i) {
+            let gameUser = this.gameUsers[users[i]]
+            if (gameUser.seatIndex === seatIndex) {
+                return this.gameUsers[users[i]]
+            }
+        }
+    }
+
+    /**
+     * 记录用户的操作
+     *
+     * @param {number} seatIndex 坐位号
+     * @param {number} action 行为号
+     * @param {number} pai 牌号
+     */
+    recordGameAction(seatIndex, action, pai) {
+        this.actionList.push(seatIndex)
+        this.actionList.push(action)
+        if (pai != null) {
+            this.actionList.push(pai)
+        }
+    }
+
+    /**
      * k5x发牌
      */
     deal() {
@@ -82,9 +168,9 @@ export default class Game {
             seatIndex++
             seatIndex %= 3
         }
-        // 庄家，多模一张牌
-        if (this.turn) {
-            this.gameUsers[this.turn].mopai(this)
+        if (this.turn > -1) {
+            // 庄家，多模一张牌
+            this.getUserBySeatIndex(this.turn).mopai(this)
         }
     }
 }

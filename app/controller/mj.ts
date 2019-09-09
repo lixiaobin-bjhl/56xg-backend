@@ -18,8 +18,11 @@ export default class MJController extends Controller {
         let room: Room = await ctx.service.room.getRoomByRoomId(roomId)
         if (room) {
             let gameUsers = {}
-            room.seats.forEach((item: any) => {
-                gameUsers[item.userId] = new GameUser(item.userId)
+            room.seats.forEach((item: any, index: number) => {
+                gameUsers[item.userId] = new GameUser({
+                    id: item.userId,
+                    seatIndex: index
+                })
             })
             let game = new Game({
                 mahjongs,
@@ -28,7 +31,7 @@ export default class MJController extends Controller {
             })
             let zhuangjia: GameUser = gameUsers[room.seats[0].userId]
             // 设置庄家
-            game.turn = zhuangjia.id
+            game.turn = zhuangjia.seatIndex
             game.deal()
             ctx.body = ctx.helper.success(game)
         }
