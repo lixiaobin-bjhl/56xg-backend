@@ -15,6 +15,19 @@ class MessageController extends Controller {
         list[userId].sid = socket.id
         await this.app.redis.set('cache:sockets', JSON.stringify(list))
     }
+
+    /*
+     * 加入房间
+     */
+    async joinRoom(socket) {
+        let { ctx } = this
+        let args = socket.args
+        let roomId = args[0].roomId
+        if (args[1] && typeof args[1] == 'function') {
+            args[1]()
+        }
+        await ctx.helper.sendMessage(roomId, 'join-room', await ctx.helper.getUser())
+    }
 }
 
 export default MessageController

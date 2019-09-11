@@ -1,4 +1,3 @@
-
 module.exports = {
     /**
      * 生成timestamp, 微信api使用
@@ -58,6 +57,24 @@ module.exports = {
         }
         return result
     },
+
+    /**
+     *  给房间发消息
+     *
+     * @param {number} roomId 房间id
+     * @param {string} messageType 消息类型
+     * @param {any} data 消息数据
+     */
+    async sendMessage(roomId, type, data) {
+        let { ctx } = this
+        let nsp = this.app.io.of('/')
+        await nsp.in('room' + roomId).emit('message', {
+            type: type,
+            data,
+            from: await ctx.helper.getUser()
+        })
+    },
+
     async getGames() {
         let result = {}
         let games = await this.ctx.app.redis.get('games')

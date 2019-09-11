@@ -14,6 +14,11 @@ export default class RoomService extends Service {
         return rooms
     }
 
+    async detail() {
+        let room = await this.getRoomByRoomId(this.ctx.request.body.roomId)
+        return room
+    }
+
     /**
      * 根据房间id查找room对象
      *
@@ -118,7 +123,7 @@ export default class RoomService extends Service {
         let roomId = ctx.request.body.roomId
         let rooms = await ctx.helper.getRooms()
         let user = await ctx.helper.getUser()
-        let room =  rooms[roomId]
+        let room = rooms[roomId]
         if (room) {
             let seats = room.seats
             // 看是否已经房间中

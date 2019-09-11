@@ -9,6 +9,7 @@ export default (app: Application) => {
     router.post('/room/list.json', controller.room.list)
     router.post('/room/add.json', app.middleware.auth(), controller.room.add)
     router.post('/room/join.json', app.middleware.auth(), controller.room.join)
+    router.post('/room/detail.json', app.middleware.auth(), controller.room.detail)
 
     router.get('/mj/shuffle.json', controller.mj.shuffle)
     router.post('/mj/deal.json', controller.mj.deal)
@@ -19,7 +20,7 @@ export default (app: Application) => {
     router.post('/login.json', controller.home.login)
     router.post('/info.json', controller.home.info)
 
-    app.io.of('/').route('join-room', controller.room.join)
+    app.io.of('/').route('join-room', controller.message.joinRoom)
     app.io.of('/').route('chupai', controller.game.chupai)
     app.io.of('/').route('heartbeat', controller.message.ping)
 
@@ -30,8 +31,12 @@ export default (app: Application) => {
         let list = {}
         let sid = socket.id
         const query = socket.handshake.query
+        let roomId = query.roomId
         let uid = query.uid
-        console.log('uid', uid)
+        if (roomId) {
+            socket.join('room' + roomId)
+            console.log(uid + ' join room ' + roomId)
+        }
         if (sockets) {
             list = JSON.parse(sockets)
         }
