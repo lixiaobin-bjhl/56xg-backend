@@ -23,10 +23,11 @@ class MessageController extends Controller {
         let { ctx } = this
         let args = socket.args
         let roomId = args[0].roomId
+        socket.join(roomId)
         if (args[1] && typeof args[1] == 'function') {
             args[1]()
         }
-        await ctx.helper.sendMessage(roomId, 'join-room', await ctx.helper.getUser())
+        await ctx.helper.sendMessage(roomId, 'join-room', {})
     }
 }
 

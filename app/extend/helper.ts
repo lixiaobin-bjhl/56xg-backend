@@ -68,7 +68,7 @@ module.exports = {
     async sendMessage(roomId, type, data) {
         let { ctx } = this
         let nsp = this.app.io.of('/')
-        await nsp.in('room' + roomId).emit('message', {
+        await nsp.in(roomId).emit('message', {
             type: type,
             data,
             from: await ctx.helper.getUser()
@@ -112,6 +112,20 @@ module.exports = {
         }
         return result
     },
+    error(code, message) {
+        let result = {
+            code: code,
+            msg: message
+        }
+        return result
+    },
+    response(reuslt) {
+        if (typeof reuslt === 'string') {
+            return this.error(1, reuslt)
+        } else {
+            return this.success(reuslt)
+        }
+    },
     /**
      * 获取pageDto
      */
@@ -123,13 +137,6 @@ module.exports = {
             pageNum: pageDto.pageNum || 1,
             pageSize: pageDto.pageSize || 20
         }
-    },
-    error(code, message) {
-        let result = {
-            code: code,
-            msg: message
-        }
-        return result
     },
     /**
      * 根据对象拼接sql语句

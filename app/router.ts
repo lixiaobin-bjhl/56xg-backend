@@ -10,6 +10,7 @@ export default (app: Application) => {
     router.post('/room/add.json', app.middleware.auth(), controller.room.add)
     router.post('/room/join.json', app.middleware.auth(), controller.room.join)
     router.post('/room/detail.json', app.middleware.auth(), controller.room.detail)
+    router.post('/room/leave.json', app.middleware.auth(), controller.room.leave)
 
     router.get('/mj/shuffle.json', controller.mj.shuffle)
     router.post('/mj/deal.json', controller.mj.deal)
@@ -34,7 +35,7 @@ export default (app: Application) => {
         let roomId = query.roomId
         let uid = query.uid
         if (roomId) {
-            socket.join('room' + roomId)
+            socket.join(roomId)
             console.log(uid + ' join room ' + roomId)
         }
         if (sockets) {

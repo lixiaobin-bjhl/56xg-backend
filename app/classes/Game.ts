@@ -10,7 +10,6 @@ export default class Game {
     currentIndex = 0
     roomId: number
     mahjongs: Array<number> = []
-    room: Object = {}
     gameUsers: Object = {}
     turn = -1
     chupaiCount = 0
@@ -20,7 +19,6 @@ export default class Game {
     actionList: Array<any> []
     constructor(options) {
         this.number = options.number
-        this.room = options.room
         this.roomId = options.room.id
         let gameUsers = {}
         options.room.seats.forEach((item: any) => {

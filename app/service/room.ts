@@ -16,7 +16,47 @@ export default class RoomService extends Service {
 
     async detail() {
         let room = await this.getRoomByRoomId(this.ctx.request.body.roomId)
-        return room
+        if (room) {
+            let sockets = await this.ctx.helper.getSocketList()
+            room.seats.forEach((item) => {
+                Object.assign(item, sockets[item.userId])
+            })
+            return room
+        } else {
+            return '房间不存在'
+        }
+    }
+
+    /**
+     * 离开房间
+     */
+    async leave() {
+        let { ctx } = this
+        let user = await ctx.helper.getUser()
+        let roomId = user.roomId
+        if (roomId) {
+            let room = await this.getRoomByRoomId(roomId)
+            debugger
+            if (room) {
+                for (let i = 0; i < room.seats.length; i++) {
+                    if (room.seats[i].userId === user.id) {
+                        room.seats[i] = {}
+                        break
+                    }
+                }
+            } else {
+                return '你所在的房间不存在'
+            }
+            let rooms = await ctx.helper.getRooms()
+            rooms[roomId] = room
+            user.roomId = null
+            ctx.session.user = JSON.stringify(user)
+            await ctx.helper.sendMessage(roomId, 'leave-room', rooms)
+            await this.updateRooms(rooms)
+        } else {
+            return '你还没有进入房间'
+        }
+
     }
 
     /**
@@ -126,7 +166,7 @@ export default class RoomService extends Service {
         let room = rooms[roomId]
         if (room) {
             let seats = room.seats
-            // 看是否已经房间中
+            // 看是否已经在房间中
             if (seats.some((item): boolean => {
                 if (item.userId === user.id) {
                     return true
@@ -164,8 +204,13 @@ export default class RoomService extends Service {
                 user.roomId = roomId
                 ctx.session.user = JSON.stringify(user)
                 await this.updateRooms(rooms)
+                let count = r.getSeatCount()
+                // 人满了, 创建游戏
+                if (count === 3) {
+                    ctx.service.game.createGame(roomId)
+                }
                 return {
-                    count: r.getSeatCount(),
+                    count: count,
                     roomId: roomId
                 }
             }

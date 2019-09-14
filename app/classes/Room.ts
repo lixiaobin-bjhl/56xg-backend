@@ -9,6 +9,8 @@ export default class Room {
     name = ''
     // 房间坐位
     seats: Array<Seat> = []
+    // 当前的游戏对象
+    game
     constructor(option: any) {
         this.id = option.id
         this.name = option.name

@@ -14,16 +14,19 @@ export default class RoomController extends Controller {
 
     public async detail() {
         const { ctx } = this
-        ctx.body = ctx.helper.success(await ctx.service.room.detail())
+        let result =  await ctx.service.room.detail()
+        ctx.body = ctx.helper.response(result)
+    }
+
+    public async leave() {
+        const { ctx } = this
+        let result = await ctx.service.room.leave()
+        ctx.body = ctx.helper.response(result)
     }
 
     public async join() {
         let { ctx } = this
         let result = await ctx.service.room.join()
-        if (typeof result === 'string') {
-            ctx.body = ctx.helper.error(1, result)
-        } else {
-            ctx.body = ctx.helper.success(result)
-        }
+        ctx.body = ctx.helper.response(result)
     }
 }

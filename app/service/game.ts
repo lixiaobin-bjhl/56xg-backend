@@ -29,6 +29,24 @@ export default class GameService extends Service {
     }
 
     /**
+     * 创建一个游戏
+     */
+    async createGame(roomId) {
+        let { ctx } = this
+        let room: Room = await ctx.service.room.getRoomByRoomId(roomId)
+        let game = new Game({
+            number: new Hashids(new Date().toString(), 10).encode(1),
+            room
+        })
+        room.game = game
+        let rooms = ctx.helper.getRooms()
+        rooms[roomId] = room
+        await ctx.service.room.updateRooms(rooms)
+        await ctx.helper.sendMessage(roomId, 'start-game', rooms)
+        return room
+    }
+
+    /**
      * 根据游戏id 找到游戏
      */
     async getGameByGameNumber(number) {
