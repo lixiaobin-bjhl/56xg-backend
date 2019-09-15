@@ -19,7 +19,7 @@ export default class GameService extends Service {
 
         let game = new Game({
             number: new Hashids(new Date().toString(), 10).encode(1),
-            room
+            seats: room.seats
         })
         user.gameNumber = game.number
         ctx.session.user = JSON.stringify(user)
@@ -64,19 +64,40 @@ export default class GameService extends Service {
      */
     async deal() {
         let { ctx } = this
-        let games = await ctx.helper.getGames()
+        let rooms = await ctx.helper.getRooms()
         let user = await ctx.helper.getUser()
-        let g = await this.getGameByGameNumber(user.gameNumber)
+        let room = await rooms[user.roomId]
+        let g = room.game
         if (g) {
             let game: Game = new Game(g)
             game.deal()
-            games[game.number] = game
-            await this.updateGames(games)
-            return game
+            room.game = game
+            rooms[user.roomId] = room
+            await ctx.service.room.updateRooms(rooms)
+            return room
         } else {
             return
         }
     }
+
+    // /**
+    //  * 发牌
+    //  */
+    // async deal() {
+    //     let { ctx } = this
+    //     let games = await ctx.helper.getGames()
+    //     let user = await ctx.helper.getUser()
+    //     let g = await this.getGameByGameNumber(user.gameNumber)
+    //     if (g) {
+    //         let game: Game = new Game(g)
+    //         game.deal()
+    //         games[game.number] = game
+    //         await this.updateGames(games)
+    //         return game
+    //     } else {
+    //         return
+    //     }
+    // }
     async updateGames(games) {
         await this.ctx.app.redis.set('games', JSON.stringify(games))
     }
