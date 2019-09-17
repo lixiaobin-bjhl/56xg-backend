@@ -6,12 +6,14 @@ import actions from '../consts/actions'
 export default class GameController extends Controller {
     public async start() {
         let { ctx } = this
-        ctx.body = ctx.helper.success(await ctx.service.game.start())
+        let result = await ctx.service.game.createGame(ctx.request.body.roomId)
+        ctx.body = ctx.helper.response(result)
     }
 
     public async deal() {
         let { ctx } = this
-        ctx.body = ctx.helper.success(await ctx.service.game.deal())
+        let result = await ctx.service.game.deal()
+        ctx.body = ctx.helper.response(result)
     }
 
     /**
@@ -22,10 +24,17 @@ export default class GameController extends Controller {
         let arg = socket.args[0]
         let pai = arg.pai
         let user = await ctx.helper.getUser()
-        let gameData = await ctx.service.game.getGameByGameNumber(user.gameNumber)
-        let game: Game = new Game(gameData)
-        let gameUser: GameUser =  game.gameUsers[user.id]
+        let roomId = user.roomId
+        let rooms = await ctx.helper.getRooms()
+        let room = rooms[roomId]
+        let gameData = room.game
+        let params = gameData
 
+        Object.assign(params, {
+            seats: room.seats
+        })
+        let game: Game = new Game(params)
+        let gameUser: GameUser =  game.gameUsers[user.id]
         // 如果不该他出，则忽略
         if (game.turn != gameUser.seatIndex) {
             this.app.logger.error('not your turn game' + game.number + ' user' + user.name)
@@ -39,7 +48,7 @@ export default class GameController extends Controller {
 
         // 从此人牌中扣除
         let index = gameUser.holds.indexOf(pai)
-        if (index == -1) {
+        if (index === -1) {
             this.app.logger.error('can not find pai' + pai + ' ' + game.number + ' user' + user.name)
             return
         }
@@ -47,25 +56,33 @@ export default class GameController extends Controller {
         game.chupaiCount++
         gameUser.holds.splice(index, 1)
         gameUser.countMap[pai]--
-        game.chupai = pai
-        game.recordGameAction(gameUser.seatIndex, actions.ACTION_CHUPAI, pai)
         gameUser.checkCanTingPai()
 
-        // userMgr.broacastInRoom('game_chupai_notify_push', { userId: seatData.userId, pai: pai }, seatData.userId, true)
+        game.chupai = pai
+        game.gameUsers[user.id] = gameUser
+        game.recordGameAction(gameUser.seatIndex, actions.ACTION_CHUPAI, pai)
 
-        let users =  Object.keys(game.gameUsers)
-        for (let i = 0; i < users.length; i++) {
-            let theGameUser = game.gameUsers[users[i]]
-            // 玩家自己不检查
-            if (theGameUser.seatIndex === game.turn) {
-                continue
-            }
-            game.checkUserCanHu(theGameUser.seatIndex, pai)
-            game.checkUserCanPeng(theGameUser.seatIndex, pai)
-            game.checkUserCanDianGang(theGameUser.seatIndex, pai)
-            if (theGameUser.hasOperations()) {
-                // sendOperations(game, ddd, game.chuPai)
-            }
-        }
+        room.game = game
+        rooms[roomId] = room
+        await ctx.service.room.updateRooms(rooms)
+        await ctx.helper.sendMessage(roomId, 'chupai', {
+            pai: pai,
+            gameUser: game.getGameUserByUserId(user.id)
+        })
+
+        // let users =  Object.keys(game.gameUsers)
+        // for (let i = 0; i < users.length; i++) {
+        //     let theGameUser = game.gameUsers[users[i]]
+        //     // 玩家自己不检查
+        //     if (theGameUser.seatIndex === game.turn) {
+        //         continue
+        //     }
+        //     game.checkUserCanHu(theGameUser.seatIndex, pai)
+        //     game.checkUserCanPeng(theGameUser.seatIndex, pai)
+        //     game.checkUserCanDianGang(theGameUser.seatIndex, pai)
+        //     if (theGameUser.hasOperations()) {
+        //         // sendOperations(game, ddd, game.chuPai)
+        //     }
+        // }
     }
 }

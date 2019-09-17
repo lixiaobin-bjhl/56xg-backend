@@ -10,8 +10,7 @@ export default class Game {
     currentIndex = 0
     mahjongs: Array<number> = []
     gameUsers: Object = {}
-    turn = -1
-    seats: Array<object>
+    turn = 0
     chupaiCount = 0
     // 当前出的牌
     chupai = -1
@@ -20,15 +19,20 @@ export default class Game {
     constructor(options) {
         this.number = options.number
         let gameUsers = {}
-        this.seats = options.seats
-        options.seats.forEach((item: any) => {
-            gameUsers[item.userId] = new GameUser(item)
+        options.seats.forEach((item: any, index) => {
+            // 玩家是否有坐位号，有坐位号说明初始化过
+            if (options.gameUsers && typeof options.gameUsers[item.userId].seatIndex == 'number') {
+                gameUsers[item.userId] = new GameUser(options.gameUsers[item.userId])
+            } else {
+                item.seatIndex = index
+                gameUsers[item.userId] = new GameUser(item)
+            }
         })
         this.gameUsers = gameUsers
         this.mahjongs = options.mahjongs || this.shuffle()
         this.createTime = options.createTime || new Date().getTime()
-        this.chupaiCount = options.chupaiCount
-        this.actionList = options.actionList
+        this.chupaiCount = options.chupaiCount || 0
+        this.actionList = options.actionList || []
     }
 
     /**
@@ -78,7 +82,7 @@ export default class Game {
      * @param {number} pai 别人出的牌
      */
     checkUserCanHu(seatIndex, pai) {
-        let gameUser = this.getUserBySeatIndex(seatIndex)
+        let gameUser = this.getGameUserBySeatIndex(seatIndex)
         gameUser.canHu = false
         for (let k in gameUser.tingMap) {
             if (pai == k) {
@@ -94,7 +98,7 @@ export default class Game {
      * @param {number} pai 别人出的牌
      */
     checkUserCanPeng(seatIndex, pai) {
-        let gameUser = this.getUserBySeatIndex(seatIndex)
+        let gameUser = this.getGameUserBySeatIndex(seatIndex)
         let count = gameUser.countMap[pai]
         if (count && count >= 2) {
             gameUser.canPeng = true
@@ -112,9 +116,9 @@ export default class Game {
         if (this.mahjongs.length <= this.currentIndex) {
             return
         }
-        let gameUser = this.getUserBySeatIndex(seatIndex)
+        let gameUser = this.getGameUserBySeatIndex(seatIndex)
         let count = gameUser.countMap[pai]
-        if (count != null && count >= 3) {
+        if (count && count >= 3) {
             gameUser.canGang = true
             gameUser.gangPai.push(pai)
             return
@@ -122,15 +126,29 @@ export default class Game {
     }
 
     /**
+     * 通过玩家id找到gameUser
+     *
+     * @param {number|string} userId
+     */
+    getGameUserByUserId(userId) {
+        let users = Object.keys(this.gameUsers)
+        for (let i = 0; i < users.length; ++i) {
+            let gameUser = this.gameUsers[users[i]]
+            if (gameUser.userId === userId) {
+                return this.gameUsers[users[i]]
+            }
+        }
+    }
+
+    /**
      * 通过玩家坐位号获取用户对象
      *
-     * @param {number} seatIndex 坐位号
+     * getGameUserBySeatIndex seatIndex 坐位号
      */
-    getUserBySeatIndex(seatIndex) {
+    getGameUserBySeatIndex(seatIndex) {
         let users = Object.keys(this.gameUsers)
-        for (let i = 0; i < 40; ++i) {
-            let gameUser = this.gameUsers[users[i]]
-            if (gameUser.seatIndex === seatIndex) {
+        for (let i = 0; i < users.length; ++i) {
+            if (i === seatIndex) {
                 return this.gameUsers[users[i]]
             }
         }
@@ -160,15 +178,13 @@ export default class Game {
         let seatIndex = 0
         let users = Object.keys(this.gameUsers)
         // 每人13张 一共 13*3 ＝ 39张 庄家多一张 40张
-        for (let i = 0; i < 40; ++i) {
+        for (let i = 0; i < 39; ++i) {
             let gameUser = this.gameUsers[users[seatIndex]]
             gameUser.mopai(this)
             seatIndex++
             seatIndex %= 3
         }
-        if (this.turn > -1) {
-            // 庄家，多模一张牌
-            this.getUserBySeatIndex(this.turn).mopai(this)
-        }
+        // 庄家，多模一张牌
+        this.getGameUserBySeatIndex(this.turn).mopai(this)
     }
 }

@@ -8,25 +8,6 @@ let Hashids  = require('hashids/cjs')
  * ms service
  */
 export default class GameService extends Service {
-    /**
-     * 开始游戏
-     */
-    async start() {
-        let { ctx } = this
-        let user = await ctx.helper.getUser()
-        let room: Room = await ctx.service.room.getRoomByRoomId(user.roomId)
-        let games = await ctx.helper.getGames()
-
-        let game = new Game({
-            number: new Hashids(new Date().toString(), 10).encode(1),
-            seats: room.seats
-        })
-        user.gameNumber = game.number
-        ctx.session.user = JSON.stringify(user)
-        games[game.number] = game
-        await this.updateGames(games)
-        return game
-    }
 
     /**
      * 创建一个游戏
@@ -34,9 +15,13 @@ export default class GameService extends Service {
     async createGame(roomId) {
         let { ctx } = this
         let room: Room = await ctx.service.room.getRoomByRoomId(roomId)
+        // 正在游戏中，就不要再新创建游戏了
+        if (room.game) {
+            return room
+        }
         let game = new Game({
             number: new Hashids(new Date().toString(), 10).encode(1),
-            room
+            seats: room.seats
         })
         room.game = game
         let rooms = ctx.helper.getRooms()
@@ -66,39 +51,24 @@ export default class GameService extends Service {
         let { ctx } = this
         let rooms = await ctx.helper.getRooms()
         let user = await ctx.helper.getUser()
-        let room = await rooms[user.roomId]
+        let room = rooms[user.roomId]
         let g = room.game
         if (g) {
-            let game: Game = new Game(g)
-            game.deal()
+            let params = g
+            Object.assign(params, {
+                seats: room.seats
+            })
+            let game: Game = new Game(params)
+            // 游戏之前没有发过牌，就发一次牌
+            if (!game.gameUsers[user.id].holds.length) {
+                game.deal()
+            }
             room.game = game
             rooms[user.roomId] = room
             await ctx.service.room.updateRooms(rooms)
             return room
         } else {
-            return
+            return '还没有开始游戏'
         }
-    }
-
-    // /**
-    //  * 发牌
-    //  */
-    // async deal() {
-    //     let { ctx } = this
-    //     let games = await ctx.helper.getGames()
-    //     let user = await ctx.helper.getUser()
-    //     let g = await this.getGameByGameNumber(user.gameNumber)
-    //     if (g) {
-    //         let game: Game = new Game(g)
-    //         game.deal()
-    //         games[game.number] = game
-    //         await this.updateGames(games)
-    //         return game
-    //     } else {
-    //         return
-    //     }
-    // }
-    async updateGames(games) {
-        await this.ctx.app.redis.set('games', JSON.stringify(games))
     }
 }

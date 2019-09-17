@@ -71,7 +71,7 @@ export default class RoomService extends Service {
             rooms = JSON.parse(rooms)
             return rooms[roomId]
         }
-        return null
+        return '房间不存在'
     }
 
     /**

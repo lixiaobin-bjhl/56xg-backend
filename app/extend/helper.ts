@@ -64,15 +64,24 @@ module.exports = {
      * @param {number} roomId 房间id
      * @param {string} messageType 消息类型
      * @param {any} data 消息数据
+     * @param {boolean} includeSender 下发消息是否包含发送者
      */
-    async sendMessage(roomId, type, data) {
+    async sendMessage(roomId, type, data, includeSender = true) {
         let { ctx } = this
         let nsp = this.app.io.of('/')
-        await nsp.in(roomId).emit('message', {
-            type: type,
-            data,
-            from: await ctx.helper.getUser()
-        })
+        if (includeSender) {
+            await nsp.in(roomId).emit('message', {
+                type: type,
+                data,
+                from: await ctx.helper.getUser()
+            })
+        } else {
+            await nsp.to(roomId).emit('message', {
+                type: type,
+                data,
+                from: await ctx.helper.getUser()
+            })
+        }
     },
 
     async getGames() {
