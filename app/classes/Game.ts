@@ -33,6 +33,7 @@ export default class Game {
         this.createTime = options.createTime || new Date().getTime()
         this.chupaiCount = options.chupaiCount || 0
         this.actionList = options.actionList || []
+        this.turn = options.turn || 0
     }
 
     /**
@@ -186,5 +187,20 @@ export default class Game {
         }
         // 庄家，多模一张牌
         this.getGameUserBySeatIndex(this.turn).mopai(this)
+    }
+
+    /**
+     * 将当前激活状态移到下家或指定下家
+     *
+     * @param {number?} 指定坐位号
+     */
+    moveToNextUser(nextSeat?: number) {
+        if (nextSeat) {
+            this.turn = nextSeat
+        } else {
+            this.turn++
+            this.turn %= 3
+        }
+        console.log('enen', this.turn)
     }
 }

@@ -35,12 +35,14 @@ export default class GameController extends Controller {
         })
         let game: Game = new Game(params)
         let gameUser: GameUser =  game.gameUsers[user.id]
+
+        console.log('game.trun', game.turn)
+        console.log('gameUser.seatIndex', gameUser.seatIndex)
         // 如果不该他出，则忽略
         if (game.turn != gameUser.seatIndex) {
-            this.app.logger.error('not your turn game' + game.number + ' user' + user.name)
+            this.app.logger.error('not your turn game' + game.number + ' user ' + user.name)
             return
         }
-
         if (gameUser.hasOperations()) {
             this.app.logger.error('plz guo before you chupai' + game.number + ' user' + user.name)
             return
@@ -61,7 +63,7 @@ export default class GameController extends Controller {
         game.chupai = pai
         game.gameUsers[user.id] = gameUser
         game.recordGameAction(gameUser.seatIndex, actions.ACTION_CHUPAI, pai)
-
+        game.moveToNextUser()
         room.game = game
         rooms[roomId] = room
         await ctx.service.room.updateRooms(rooms)
@@ -69,6 +71,7 @@ export default class GameController extends Controller {
             pai: pai,
             gameUser: game.getGameUserByUserId(user.id)
         })
+        console.log('gamehehe', game.turn)
 
         // let users =  Object.keys(game.gameUsers)
         // for (let i = 0; i < users.length; i++) {
