@@ -27,7 +27,7 @@ class MessageController extends Controller {
         if (args[1] && typeof args[1] == 'function') {
             args[1]()
         }
-        await ctx.helper.sendMessage(roomId, 'join-room', {})
+        await ctx.helper.sendMessageToRoom(roomId, 'join-room', {})
     }
 }
 

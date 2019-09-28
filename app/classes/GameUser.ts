@@ -5,7 +5,7 @@
 import Game from './Game'
 
 export default class GameUser {
-    id: string|number
+    userId: string|number
     // 手牌
     holds: Array<number> = []
     // 坐位号

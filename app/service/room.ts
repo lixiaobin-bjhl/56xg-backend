@@ -51,7 +51,7 @@ export default class RoomService extends Service {
             rooms[roomId] = room
             user.roomId = null
             ctx.session.user = JSON.stringify(user)
-            await ctx.helper.sendMessage(roomId, 'leave-room', rooms)
+            await ctx.helper.sendMessageToRoom(roomId, 'leave-room', rooms)
             await this.updateRooms(rooms)
         } else {
             return '你还没有进入房间'
@@ -197,6 +197,7 @@ export default class RoomService extends Service {
                     name: room.name,
                     seats: room.seats
                 })
+                this.app.logger.info(user.id + ' join room ' + roomId)
                 r.addSeat({
                     userId: user.id
                 })

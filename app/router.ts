@@ -34,9 +34,10 @@ export default (app: Application) => {
         const query = socket.handshake.query
         let roomId = query.roomId
         let uid = query.uid
+
         if (roomId) {
             socket.join(roomId)
-            console.log(uid + ' join room ' + roomId)
+            app.logger.info(uid + ' join room ' + roomId)
         }
         if (sockets) {
             list = JSON.parse(sockets)

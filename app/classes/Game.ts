@@ -201,6 +201,5 @@ export default class Game {
             this.turn++
             this.turn %= 3
         }
-        console.log('enen', this.turn)
     }
 }

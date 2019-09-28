@@ -66,7 +66,7 @@ module.exports = {
      * @param {any} data 消息数据
      * @param {boolean} includeSender 下发消息是否包含发送者
      */
-    async sendMessage(roomId, type, data, includeSender = true) {
+    async sendMessageToRoom(roomId, type, data, includeSender = true) {
         let { ctx } = this
         let nsp = this.app.io.of('/')
         if (includeSender) {
@@ -82,6 +82,22 @@ module.exports = {
                 from: await ctx.helper.getUser()
             })
         }
+    },
+
+    /**
+     * 给用户发消息
+     *
+     * @param {number|string} userId 用户名
+     * @param {string} messageType 消息类型
+     * @param {any} data 消息数据
+     */
+    async sendMessageToUser(userId, type, data) {
+        let list = await this.getSocketList()
+        let nsp = this.app.io.of('/')
+        await nsp.to(list[userId].sid).emit('message', {
+            type: type,
+            data
+        })
     },
 
     async getGames() {
