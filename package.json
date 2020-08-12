@@ -29,7 +29,7 @@
     "egg-session-redis": "^2.1.0",
     "egg-socket.io": "^4.1.6",
     "hashids": "^2.0.0",
-    "serialize-javascript": "^1.9.0"
+    "serialize-javascript": "^4.0.0"
   },
   "devDependencies": {
     "@types/mocha": "^2.2.40",
